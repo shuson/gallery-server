@@ -1,4 +1,9 @@
-# Welcome to gallery-server 👋
+# Welcome to gallery-server-mod 👋
+
+This is mod version of https://github.com/legend80s/gallery-server, for personal use but open to public.
+New feature:
+1. thumbnails are loaded in homepage
+2. tbd
 
 <p>
   <a href="https://www.npmjs.com/package/gallery-server">
