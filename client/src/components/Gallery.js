@@ -37,7 +37,11 @@ export function Gallery({ theme, direction }) {
     </ModalGateway>}
 
     {photos.length ? <PhotoWall
-      photos={photos}
+      photos={photos.map(photo => {return {
+        src: photo.thumbnail,
+        width: photo.width,
+        height: photo.height
+      }})}
       direction={direction}
       onClick={(_, { index }) => toggleModal(index)}
     /> : null}

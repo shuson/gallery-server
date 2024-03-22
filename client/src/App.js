@@ -27,7 +27,7 @@ function App() {
         <CinemaHall theme={theme} />
       </main>
 
-      {isFooterVisible && <footer className="App-footer">
+      {false && <footer className="App-footer">
         <div className="toggle-wrapper">
           <span>Theme</span>
 
@@ -45,8 +45,6 @@ function App() {
         <a
           className="App-link"
           href="https://github.com/legend80s/gallery-server"
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Give a <span role="img" aria-label="github star">⭐️</span> if this project helped you!
         </a>

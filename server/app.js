@@ -12,6 +12,7 @@ const detect = require('detect-port');
 const program = require('commander');
 const { promisify } = require('util');
 const sizeOf = promisify(require('image-size'));
+const sharp = require('sharp');
 
 const { version, description, name, repository } = require('../package.json');
 const { DEFAULT_PORT } = require('../lib/constants');
@@ -73,6 +74,9 @@ if (portFromCli && !isIntegerString(portFromCli)) {
 
 /** @type {string} */
 const mediaFolder = folder || directory;
+if(!fs.existsSync(mediaFolder + "/_thumbnails")) {
+  fs.mkdirSync(mediaFolder + "/_thumbnails")
+}
 
 if (!validateFolder(mediaFolder)) { process.exit(1); }
 
@@ -135,6 +139,7 @@ async function sendPhotos(ctx, photoPaths) {
   const photos = await Promise.all(photoPaths.map(async src => {
     let dimensions = { width: 1, height: 1, orientation: 1 };
 
+    //get original dimensions for a photo
     try {
       dimensions = await sizeOf(mediaFolder + '/' + src);
     } catch (error) {
@@ -143,10 +148,26 @@ async function sendPhotos(ctx, photoPaths) {
     const { width, height, orientation } = dimensions;
     const isVertical = orientation === 6;
 
+    //resize photo for faster loading in image gallary view
+    const thumbnailPath = mediaFolder + '/_thumbnails/' + src.split(".")[0] + ".jpg"
+    if(!fs.existsSync(thumbnailPath)) {
+      if(width < 500 || height < 500) {
+        sharp(mediaFolder + '/' + src)
+        .jpeg({ mozjpeg: true })
+        .toFile(thumbnailPath, (err, info) => { console.log(err)})
+      } else {
+        sharp(mediaFolder + '/' + src)
+        .resize(parseInt(width/10), parseInt(height/10))
+        .jpeg({ mozjpeg: true })
+        .toFile(thumbnailPath, (err, info) => { console.log(err)})
+      }
+    }
+
     return {
       ...normalizePath(src),
       width: isVertical ? height : width,
       height: isVertical ? width : height,
+      thumbnail: '/_thumbnails/' + src.split(".")[0] + ".jpg"
     };
   }));
 
@@ -175,7 +196,7 @@ function normalizePath(path) {
 function sendViewInfo(ctx) {
   ctx.body = {
     isColumnLayout,
-    isFooterVisible,
+    isFooterVisible: false,  //isFooterVisible,
   };
 }
 
@@ -232,9 +253,9 @@ function getRelativeFiles(folder, predicate) {
  */
 function findAllFiles(folder, predicate = () => true, excludedFolder = 'node_modules') {
   return fs.readdirSync(folder).reduce((acc, cur) => {
-    // console.log('folder', folder, 'cur:', cur);
+    //console.log('folder', folder, 'cur:', cur);
 
-    if (folder.endsWith(`/${excludedFolder}`)) {
+    if (folder.endsWith(`/${excludedFolder}`) || folder.indexOf("_thumbnails") > -1) {
       return acc;
     }
 
